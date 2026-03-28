@@ -6,6 +6,7 @@ import {
   generalSettingsStore,
   llmProviderStore,
   analyticsSettingsStore,
+  skillsStorage,
 } from '@extension/storage';
 import { t } from '@extension/i18n';
 import BrowserContext from './browser/context';
@@ -319,6 +320,21 @@ async function setupExecutor(taskId: string, task: string, browserContext: Brows
     displayHighlights: generalSettings.displayHighlights,
   });
 
+  // Load enabled skills and format them into a prompt-ready string
+  const enabledSkills = await skillsStorage.getEnabledSkills();
+  let skillsContent = '';
+  if (enabledSkills.length > 0) {
+    const skillsEntries = enabledSkills
+      .map(
+        skill => `<skill name="${skill.name}" description="${skill.description}">
+${skill.content}
+</skill>`,
+      )
+      .join('\n\n');
+    skillsContent = `# Skills\nThe following skills provide domain-specific instructions. Follow them when relevant to the current task.\n\n${skillsEntries}`;
+    logger.info(`Loaded ${enabledSkills.length} skill(s) for task execution`);
+  }
+
   const executor = new Executor(task, taskId, browserContext, navigatorLLM, {
     plannerLLM: plannerLLM ?? navigatorLLM,
     agentOptions: {
@@ -330,6 +346,7 @@ async function setupExecutor(taskId: string, task: string, browserContext: Brows
       planningInterval: generalSettings.planningInterval,
     },
     generalSettings: generalSettings,
+    skillsContent: skillsContent,
   });
 
   return executor;
