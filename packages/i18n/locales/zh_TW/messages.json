@@ -335,7 +335,28 @@
     "message": "推理"
   },
   "options_models_stt_desc": {
-    "message": "設定在使用麥克風功能時，將語音轉換為文字所使用的 Gemini 模型。"
+    "message": "設定在使用麥克風功能時，將語音轉換為文字所使用的模型。您可以使用內建的 Gemini 模型或本地的 whisper.cpp 伺服器。"
+  },
+  "options_models_stt_type_gemini": {
+    "message": "Gemini 提供商"
+  },
+  "options_models_stt_type_whisper": {
+    "message": "Whisper.cpp (本地)"
+  },
+  "options_models_stt_whisper_serverUrl": {
+    "message": "伺服器 URL"
+  },
+  "options_models_stt_whisper_serverUrl_placeholder": {
+    "message": "http://localhost:8081"
+  },
+  "options_models_stt_whisper_testConnection": {
+    "message": "測試連接"
+  },
+  "options_models_stt_whisper_testSuccess": {
+    "message": "連接成功！"
+  },
+  "options_models_stt_whisper_testFailed": {
+    "message": "連接失敗"
   },
   "options_models_chooseModel": {
     "message": "選擇模型"

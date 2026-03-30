@@ -7,17 +7,34 @@ import { t } from '@extension/i18n';
 const logger = createLogger('SpeechToText');
 
 export class SpeechToTextService {
-  private llm: ChatGoogleGenerativeAI;
+  private llm?: ChatGoogleGenerativeAI;
+  private serverUrl?: string;
+  private type: 'gemini' | 'whisper_cpp';
 
-  private constructor(llm: ChatGoogleGenerativeAI) {
+  private constructor(type: 'gemini' | 'whisper_cpp', llm?: ChatGoogleGenerativeAI, serverUrl?: string) {
+    this.type = type;
     this.llm = llm;
+    this.serverUrl = serverUrl;
   }
 
   static async create(providers: Record<string, ProviderConfig>): Promise<SpeechToTextService> {
     try {
       const config = await speechToTextModelStore.getSpeechToTextModel();
 
-      if (!config?.provider || !config?.modelName) {
+      if (!config) {
+        throw new Error(t('chat_stt_model_notFound'));
+      }
+
+      if (config.type === 'whisper_cpp') {
+        if (!config.serverUrl) {
+          throw new Error('Whisper.cpp server URL not configured');
+        }
+        logger.info(`Speech-to-text service created with whisper.cpp at ${config.serverUrl}`);
+        return new SpeechToTextService('whisper_cpp', undefined, config.serverUrl);
+      }
+
+      // Default to gemini
+      if (!config.provider || !config.modelName) {
         throw new Error(t('chat_stt_model_notFound'));
       }
 
@@ -35,18 +52,81 @@ export class SpeechToTextService {
         topP: 0.8,
       });
       logger.info(`Speech-to-text service created with model: ${config.modelName}`);
-      return new SpeechToTextService(llm);
+      return new SpeechToTextService('gemini', llm, undefined);
     } catch (error) {
       logger.error('Failed to create speech-to-text service:', error);
       throw error;
     }
   }
 
-  async transcribeAudio(base64Audio: string): Promise<string> {
+  async transcribeAudio(base64Audio: string, mimeType = 'audio/webm'): Promise<string> {
     try {
-      logger.info('Starting audio transcription...');
+      logger.info(`Starting audio transcription using ${this.type}...`);
 
-      // Create transcription message with audio data
+      if (this.type === 'whisper_cpp' && this.serverUrl) {
+        // Convert base64 to raw bytes
+        const binaryString = atob(base64Audio);
+        const rawBytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          rawBytes[i] = binaryString.charCodeAt(i);
+        }
+
+        // Use the mime type from the side panel to determine format
+        // Side panel converts to WAV when possible for whisper.cpp compatibility
+        const isWav = mimeType === 'audio/wav';
+        const fileName = isWav ? 'audio.wav' : 'audio.webm';
+        const audioBlob = new Blob([rawBytes.buffer as ArrayBuffer], { type: mimeType });
+        logger.info(`Audio received: ${mimeType}, size: ${audioBlob.size} bytes`);
+
+        const baseUrl = this.serverUrl.replace(/\/$/, '');
+
+        // Strategy 1: Try /inference (native whisper.cpp)
+        {
+          const fd = new FormData();
+          fd.append('file', audioBlob, fileName);
+          fd.append('temperature', '0.0');
+          fd.append('response_format', 'json');
+
+          const resp = await fetch(`${baseUrl}/inference`, { method: 'POST', body: fd });
+          if (resp.ok) {
+            const data = await resp.json();
+            const text = (data.text || '').trim();
+            logger.info('Transcription via /inference:', text);
+            return text;
+          }
+          logger.info(`/inference failed: ${resp.status}`);
+        }
+
+        // Strategy 2: Try /v1/audio/transcriptions (OpenAI-compatible)
+        {
+          const fd = new FormData();
+          fd.append('file', audioBlob, fileName);
+          fd.append('model', 'whisper-1');
+
+          const resp = await fetch(`${baseUrl}/v1/audio/transcriptions`, { method: 'POST', body: fd });
+          if (resp.ok) {
+            const data = await resp.json();
+            const text = (data.text || '').trim();
+            logger.info('Transcription via /v1/audio/transcriptions:', text);
+            return text;
+          }
+          let errorDetail = '';
+          try {
+            errorDetail = await resp.text();
+          } catch {
+            // ignore
+          }
+          logger.error(`/v1/audio/transcriptions failed: ${resp.status}`, errorDetail);
+        }
+
+        throw new Error('All whisper transcription attempts failed. Check server logs. ' + `Server URL: ${baseUrl}`);
+      }
+
+      // Gemini logic
+      if (!this.llm) {
+        throw new Error('Gemini LLM not initialized');
+      }
+
       const transcriptionMessage = new HumanMessage({
         content: [
           {
@@ -61,11 +141,9 @@ export class SpeechToTextService {
         ],
       });
 
-      // Get transcription from Gemini
       const transcriptionResponse = await this.llm.invoke([transcriptionMessage]);
-
       const transcribedText = transcriptionResponse.content.toString().trim();
-      logger.info('Audio transcription completed:', transcribedText);
+      logger.info('Audio transcription completed (gemini):', transcribedText);
 
       return transcribedText;
     } catch (error) {

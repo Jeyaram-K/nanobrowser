@@ -339,7 +339,28 @@
     "message": "Raciocínio"
   },
   "options_models_stt_desc": {
-    "message": "Configure o modelo Gemini usado para converter fala em texto ao usar o recurso de microfone."
+    "message": "Configure o modelo usado para converter fala em texto ao usar o recurso de microfone. Você pode usar um modelo Gemini integrado ou um servidor whisper.cpp local."
+  },
+  "options_models_stt_type_gemini": {
+    "message": "Provedores Gemini"
+  },
+  "options_models_stt_type_whisper": {
+    "message": "Whisper.cpp (Local)"
+  },
+  "options_models_stt_whisper_serverUrl": {
+    "message": "URL do Servidor"
+  },
+  "options_models_stt_whisper_serverUrl_placeholder": {
+    "message": "http://localhost:8081"
+  },
+  "options_models_stt_whisper_testConnection": {
+    "message": "Testar"
+  },
+  "options_models_stt_whisper_testSuccess": {
+    "message": "Conectado com sucesso!"
+  },
+  "options_models_stt_whisper_testFailed": {
+    "message": "Falha na conexão"
   },
   "options_models_chooseModel": {
     "message": "Escolher Modelo"

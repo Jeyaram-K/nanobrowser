@@ -197,12 +197,19 @@ chrome.runtime.onConnect.addListener(port => {
 
               // Extract base64 audio data (remove data URL prefix if present)
               let base64Audio = message.audio;
+              let audioMimeType = 'audio/webm'; // default
               if (base64Audio.startsWith('data:')) {
+                // Extract mime type from data:audio/wav;base64,... format
+                const mimeMatch = base64Audio.match(/^data:([^;]+);/);
+                if (mimeMatch) {
+                  audioMimeType = mimeMatch[1];
+                }
                 base64Audio = base64Audio.split(',')[1];
               }
+              logger.info(`Audio mime type from side panel: ${audioMimeType}`);
 
               // Transcribe audio
-              const transcribedText = await speechToTextService.transcribeAudio(base64Audio);
+              const transcribedText = await speechToTextService.transcribeAudio(base64Audio, audioMimeType);
 
               logger.info('Speech-to-text completed successfully');
               return port.postMessage({

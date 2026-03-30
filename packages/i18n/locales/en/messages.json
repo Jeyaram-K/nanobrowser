@@ -146,7 +146,7 @@
     "message": "Failed to process speech recording"
   },
   "chat_stt_model_notFound": {
-    "message": "No speech-to-text model configured or not a Gemini model. Please configure a Gemini model in settings."
+    "message": "No speech-to-text model configured correctly. Please configure a Gemini model or Whisper.cpp in settings."
   },
   "chat_stt_recognitionFailed": {
     "message": "Speech recognition failed"
@@ -340,7 +340,28 @@
     "message": "Reasoning"
   },
   "options_models_stt_desc": {
-    "message": "Configure the Gemini model used for converting speech to text when using the microphone feature."
+    "message": "Configure the model used for converting speech to text when using the microphone feature. You can use a built-in Gemini model or a local whisper.cpp server."
+  },
+  "options_models_stt_type_gemini": {
+    "message": "Gemini Providers"
+  },
+  "options_models_stt_type_whisper": {
+    "message": "Whisper.cpp (Local)"
+  },
+  "options_models_stt_whisper_serverUrl": {
+    "message": "Server URL"
+  },
+  "options_models_stt_whisper_serverUrl_placeholder": {
+    "message": "http://localhost:8081"
+  },
+  "options_models_stt_whisper_testConnection": {
+    "message": "Test"
+  },
+  "options_models_stt_whisper_testSuccess": {
+    "message": "Connected successfully!"
+  },
+  "options_models_stt_whisper_testFailed": {
+    "message": "Connection failed"
   },
   "options_models_chooseModel": {
     "message": "Choose Model"
