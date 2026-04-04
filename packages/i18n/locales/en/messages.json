@@ -340,13 +340,16 @@
     "message": "Reasoning"
   },
   "options_models_stt_desc": {
-    "message": "Configure the model used for converting speech to text when using the microphone feature. You can use a built-in Gemini model or a local whisper.cpp server."
+    "message": "Configure the model used for converting speech to text when using the microphone feature. You can use Gemini, Groq Whisper, or a local whisper.cpp server."
   },
   "options_models_stt_type_gemini": {
     "message": "Gemini Providers"
   },
   "options_models_stt_type_whisper": {
     "message": "Whisper.cpp (Local)"
+  },
+  "options_models_stt_type_groq": {
+    "message": "Groq Whisper"
   },
   "options_models_stt_whisper_serverUrl": {
     "message": "Server URL"

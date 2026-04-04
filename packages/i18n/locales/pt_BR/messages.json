@@ -339,13 +339,16 @@
     "message": "Raciocínio"
   },
   "options_models_stt_desc": {
-    "message": "Configure o modelo usado para converter fala em texto ao usar o recurso de microfone. Você pode usar um modelo Gemini integrado ou um servidor whisper.cpp local."
+    "message": "Configure o modelo usado para converter fala em texto ao usar o recurso de microfone. Você pode usar Gemini, Groq Whisper ou um servidor whisper.cpp local."
   },
   "options_models_stt_type_gemini": {
     "message": "Provedores Gemini"
   },
   "options_models_stt_type_whisper": {
     "message": "Whisper.cpp (Local)"
+  },
+  "options_models_stt_type_groq": {
+    "message": "Groq Whisper"
   },
   "options_models_stt_whisper_serverUrl": {
     "message": "URL do Servidor"

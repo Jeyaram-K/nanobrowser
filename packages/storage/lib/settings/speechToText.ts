@@ -3,9 +3,9 @@ import { createStorage } from '../base/base';
 import type { BaseStorage } from '../base/types';
 
 export interface SpeechToTextModelConfig {
-  type?: 'gemini' | 'whisper_cpp';
-  provider: string; // Used for gemini, or 'local' for whisper_cpp
-  modelName: string; // Used for gemini, or 'whisper' for whisper_cpp
+  type?: 'gemini' | 'whisper_cpp' | 'groq';
+  provider: string; // Used for gemini/groq, or 'local' for whisper_cpp
+  modelName: string; // Used for gemini/groq, or 'whisper' for whisper_cpp
   serverUrl?: string; // Used for whisper_cpp (e.g. http://localhost:8081)
 }
 
@@ -33,6 +33,10 @@ function validateSpeechToTextModelConfig(config: SpeechToTextModelConfig) {
   if (config.type === 'whisper_cpp') {
     if (!config.serverUrl) {
       throw new Error('Server URL must be specified for Whisper.cpp');
+    }
+  } else if (config.type === 'groq') {
+    if (!config.provider || !config.modelName) {
+      throw new Error('Provider and model name must be specified for Groq speech-to-text');
     }
   } else {
     // Default to gemini validation

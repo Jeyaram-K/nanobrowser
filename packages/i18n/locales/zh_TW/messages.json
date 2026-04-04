@@ -335,13 +335,16 @@
     "message": "推理"
   },
   "options_models_stt_desc": {
-    "message": "設定在使用麥克風功能時，將語音轉換為文字所使用的模型。您可以使用內建的 Gemini 模型或本地的 whisper.cpp 伺服器。"
+    "message": "設定在使用麥克風功能時，將語音轉換為文字所使用的模型。您可以使用 Gemini、Groq Whisper 或本地的 whisper.cpp 伺服器。"
   },
   "options_models_stt_type_gemini": {
     "message": "Gemini 提供商"
   },
   "options_models_stt_type_whisper": {
     "message": "Whisper.cpp (本地)"
+  },
+  "options_models_stt_type_groq": {
+    "message": "Groq Whisper"
   },
   "options_models_stt_whisper_serverUrl": {
     "message": "伺服器 URL"

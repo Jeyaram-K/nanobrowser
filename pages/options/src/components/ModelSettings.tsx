@@ -90,7 +90,7 @@ export const ModelSettings = ({ isDarkMode = false }: ModelSettingsProps) => {
   // State for model input handling
 
   const [selectedSpeechToTextModel, setSelectedSpeechToTextModel] = useState<string>('');
-  const [speechToTextType, setSpeechToTextType] = useState<'gemini' | 'whisper_cpp'>('gemini');
+  const [speechToTextType, setSpeechToTextType] = useState<'gemini' | 'whisper_cpp' | 'groq'>('gemini');
   const [whisperServerUrl, setWhisperServerUrl] = useState<string>('http://localhost:8081');
   const [testWhisperStatus, setTestWhisperStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
 
@@ -167,6 +167,9 @@ export const ModelSettings = ({ isDarkMode = false }: ModelSettingsProps) => {
           if (config.type === 'whisper_cpp') {
             setSpeechToTextType('whisper_cpp');
             setWhisperServerUrl(config.serverUrl || 'http://localhost:8081');
+          } else if (config.type === 'groq') {
+            setSpeechToTextType('groq');
+            setSelectedSpeechToTextModel(`${config.provider}>${config.modelName}`);
           } else {
             setSpeechToTextType('gemini');
             setSelectedSpeechToTextModel(`${config.provider}>${config.modelName}`);
@@ -705,9 +708,9 @@ export const ModelSettings = ({ isDarkMode = false }: ModelSettingsProps) => {
         // Parse the "provider>model" format
         const [provider, modelName] = modelValue.split('>');
 
-        // Save to proper storage
+        // Save to proper storage with the current STT type
         await speechToTextModelStore.setSpeechToTextModel({
-          type: 'gemini',
+          type: speechToTextType,
           provider,
           modelName,
         });
@@ -720,7 +723,7 @@ export const ModelSettings = ({ isDarkMode = false }: ModelSettingsProps) => {
     }
   };
 
-  const handleSpeechToTextTypeChange = async (type: 'gemini' | 'whisper_cpp') => {
+  const handleSpeechToTextTypeChange = async (type: 'gemini' | 'whisper_cpp' | 'groq') => {
     setSpeechToTextType(type);
     try {
       if (type === 'whisper_cpp') {
@@ -730,6 +733,15 @@ export const ModelSettings = ({ isDarkMode = false }: ModelSettingsProps) => {
           modelName: 'whisper',
           serverUrl: whisperServerUrl,
         });
+      } else if (type === 'groq') {
+        if (selectedSpeechToTextModel) {
+          const [provider, modelName] = selectedSpeechToTextModel.split('>');
+          await speechToTextModelStore.setSpeechToTextModel({
+            type: 'groq',
+            provider,
+            modelName,
+          });
+        }
       } else {
         if (selectedSpeechToTextModel) {
           const [provider, modelName] = selectedSpeechToTextModel.split('>');
@@ -1746,6 +1758,19 @@ export const ModelSettings = ({ isDarkMode = false }: ModelSettingsProps) => {
               <input
                 type="radio"
                 name="stt_type"
+                value="groq"
+                className="cursor-pointer"
+                checked={speechToTextType === 'groq'}
+                onChange={() => handleSpeechToTextTypeChange('groq')}
+              />
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {t('options_models_stt_type_groq')}
+              </span>
+            </label>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="stt_type"
                 value="whisper_cpp"
                 className="cursor-pointer"
                 checked={speechToTextType === 'whisper_cpp'}
@@ -1758,7 +1783,7 @@ export const ModelSettings = ({ isDarkMode = false }: ModelSettingsProps) => {
           </div>
 
           <div className={`border-t pt-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            {speechToTextType === 'gemini' ? (
+            {speechToTextType === 'gemini' || speechToTextType === 'groq' ? (
               <div className="flex items-center">
                 <label
                   htmlFor="speech-to-text-model"
@@ -1774,7 +1799,9 @@ export const ModelSettings = ({ isDarkMode = false }: ModelSettingsProps) => {
                   {availableModels
                     .filter(({ provider }) => {
                       const providerConfig = providers[provider];
-                      return providerConfig?.type === ProviderTypeEnum.Gemini;
+                      return speechToTextType === 'groq'
+                        ? providerConfig?.type === ProviderTypeEnum.Groq
+                        : providerConfig?.type === ProviderTypeEnum.Gemini;
                     })
                     .map(({ provider, providerName, model }) => (
                       <option key={`${provider}>${model}`} value={`${provider}>${model}`}>
